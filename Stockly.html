@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stockly - Stock Management System</title>
+<style>
+:root{--bg:#f3f6fa;--side:#0f2a43;--pri:#0e7c86;--ink:#1d2939;--mut:#667085;--line:#e4e9f0;--ok:#12805c;--warn:#d97706;--bad:#c62828}
+*{box-sizing:border-box;margin:0;font-family:'Segoe UI',Arial,sans-serif}
+body{background:var(--bg);color:var(--ink)}
+#shell{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);color:#cfe0ef;padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+aside h2{color:#fff;padding:6px 10px 16px}
+aside a{color:#cfe0ef;text-decoration:none;padding:10px 12px;border-radius:8px;font-size:14px;display:block}
+aside a:hover{background:#1b3f5f}aside a.on{background:var(--pri);color:#fff}
+.side-foot{margin-top:auto}
+.pill{background:var(--bad);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px}
+main{padding:24px 28px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px}.top h1{font-size:24px}.top div{display:flex;gap:8px}
+button,.btn{cursor:pointer;border:0;border-radius:8px;padding:9px 14px;font-weight:600;background:var(--pri);color:#fff;font-size:14px;text-decoration:none;display:inline-block}
+button.alt{background:#fff;color:var(--pri);border:1px solid var(--pri)}button.red{background:var(--bad)}button.sm{padding:5px 10px;font-size:12px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
+label{font-size:12px;color:var(--mut);font-weight:600;display:block;margin:10px 0 4px}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 1px 6px #0001}.card h3{margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:#fff;border-radius:14px;padding:18px;border-left:5px solid var(--pri);box-shadow:0 1px 6px #0001}.kpi b{font-size:23px;display:block}.kpi span{color:var(--mut);font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.tools input{flex:2;min-width:180px}.tools select{flex:1;min-width:130px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mut);font-size:12px;text-transform:uppercase;padding:8px;border-bottom:2px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line)}td .sm{margin-right:4px}
+.badge{padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}.ok{background:var(--ok)}.warn{background:var(--warn)}.bad{background:var(--bad)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:10px}
+.bars div{flex:1;text-align:center;font-size:11px;color:var(--mut);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bars i{display:block;background:var(--pri);border-radius:6px 6px 0 0;min-height:3px}
+.hb{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:13px}.hb span{width:120px}.hb i{display:block;height:12px;border-radius:6px;background:var(--pri)}
+.empty{text-align:center;color:var(--mut);padding:24px}
+#modal{display:none;position:fixed;inset:0;background:#0007;overflow:auto;padding:24px 12px;z-index:9;align-items:flex-start;justify-content:center}
+.mbox{background:#fff;width:100%;max-width:640px;border-radius:16px;padding:24px;position:relative}
+.x{position:absolute;right:12px;top:8px;background:none!important;color:var(--mut)!important;font-size:22px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+#toast{position:fixed;bottom:20px;right:20px;color:#fff;padding:12px 20px;border-radius:10px;display:none;z-index:99}
+.pos{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:460px;overflow:auto}
+.pi{border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;font-size:13px}.pi:hover{border-color:var(--pri)}.pi.dis{opacity:.45;cursor:not-allowed}.pi b{display:block}
+.line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.tot div{display:flex;justify-content:space-between;padding:4px 0}.tot .g{font-size:20px;font-weight:700;border-top:2px solid var(--ink);margin-top:6px;padding-top:8px}
+.inv{font-size:14px}.inv h2{text-align:center}.inv p{text-align:center;color:var(--mut);margin-bottom:10px}
+.lg{min-height:100vh;display:grid;grid-template-columns:1.2fr 1fr}
+.lg .hero{background:linear-gradient(150deg,#0f2a43,#0e7c86);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:center}
+.hero h1{font-size:42px;margin-bottom:10px}.hero li{margin:10px 0 0 18px;color:#d7edf0}
+.lg .form{display:flex;align-items:center;justify-content:center;padding:30px}.lg .box{width:330px}.lg .box button{width:100%;margin-top:18px}
+@media(max-width:860px){#shell{display:block}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap}.side-foot{margin:0;display:flex}.g2,.pos,.lg{grid-template-columns:1fr}.lg .hero{padding:30px}}
+@media print{body>*:not(#modal){display:none!important}#modal{position:static;background:none;display:block!important;padding:0}.x,.noprint{display:none}.mbox{box-shadow:none}}
+.ph{width:36px;height:36px;border-radius:8px;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e6f4f5,#fdf3e1);font-size:20px;flex:none}
+.pn{display:flex;align-items:center;gap:10px}.pi .ph{width:100%;height:70px;margin-bottom:6px;font-size:36px}
+.emo{font-size:36px;letter-spacing:6px;margin-top:26px}.page{display:none}
+</style></head>
+<body>
+<div id="login" class="lg" style="display:none"><div class="hero"><h1>🏪 Stockly</h1><p style="font-size:18px">General Store Stock Management System</p>
+<div class="emo">🍚🛢️🍬🍵🧃🥤🥛🍟🍪🧴</div>
+<ul><li>Real-time stock tracking, no negative stock</li><li>Low stock and expiry alerts</li><li>Billing, invoices and sales returns</li><li>Supplier accounts and purchase records</li><li>Product photos, profit and sales reports</li></ul></div>
+<div class="form"><div class="box"><h2>Log in</h2><p style="color:#667085;font-size:13px">Demo: admin / admin123</p>
+<label>Username</label><input id="u" value="admin"><label>Password</label><input id="p" type="password" value="admin123" onkeydown="if(event.key=='Enter')doLogin()">
+<button onclick="doLogin()">Login</button><p id="e" style="color:#c62828;margin-top:10px;font-size:13px"></p></div></div></div>
+<div id="shell" style="display:none"><aside id="side"></aside><main id="main">
+<section class="page" id="pg-dashboard"><div class="top"></div><div class="kpis" id="k"></div>
+<div class="g2"><div class="card"><h3>Last 7 Days Sales</h3><div id="ch"></div></div><div class="card"><h3>Alerts</h3><div id="al"></div></div></div>
+<div class="g2"><div class="card"><h3>Recent Sales</h3><div class="tw"><table id="rs"></table></div></div><div class="card"><h3>Recent Activity</h3><div id="lg"></div></div></div></section>
+<section class="page" id="pg-products"><div class="top"></div><div class="card"><div class="tools"><input id="q" placeholder="Search by name or SKU..." oninput="PG_products.draw()"><select id="c" onchange="PG_products.draw()"></select>
+<select id="s" onchange="PG_products.draw()"><option value="">All statuses</option><option value="out">Out of stock</option><option value="low">Low stock</option></select></div>
+<div class="tw"><table id="t"></table></div></div></section>
+<section class="page" id="pg-purchase"><div class="top"></div><div class="card"><h3>New Purchase (Stock Received)</h3><div class="r2"><div><label>Supplier *</label><select id="sup"></select></div><div><label>Date</label><input id="dt" type="date"></div></div>
+<div id="ls" style="margin-top:12px"></div><button class="alt sm" onclick="PG_purchase.addL()">+ Add another product</button>
+<div class="r2" style="margin-top:12px"><div><label>Amount paid now (Rs)</label><input id="paid" type="number" min="0" value="0"></div><div><label>Total</label><h2 id="tt">Rs 0</h2></div></div>
+<div class="acts"><button onclick="PG_purchase.sv()">Save Purchase</button></div></div>
+<div class="card"><h3>Purchase History</h3><div class="tw"><table id="h"></table></div></div></section>
+<section class="page" id="pg-sales"><div class="top"></div><div class="pos"><div class="card"><div class="tools"><input id="q" placeholder="Search products..." oninput="PG_sales.grid()"></div><div class="pgrid" id="grid"></div></div>
+<div class="card"><h3>🛒 Cart</h3><input id="cust" placeholder="Customer name (optional)"><div id="cart"></div><label>Discount %</label><input id="disc" type="number" min="0" max="100" value="0" oninput="PG_sales.cart()">
+<div class="tot" id="tot" style="margin-top:12px"></div><div class="acts"><button onclick="PG_sales.done()">✔ Sale Complete</button><button class="alt" onclick="PG_sales.clr()">Clear</button></div></div></div>
+<div class="card"><h3>Sales History</h3><div class="tw"><table id="h"></table></div></div></section>
+<section class="page" id="pg-suppliers"><div class="top"></div><div class="card"><div class="tw"><table id="t"></table></div></div></section>
+<section class="page" id="pg-alerts"><div class="top"></div><div class="card"><h3>🔴 Out of Stock</h3><div class="tw"><table id="o"></table></div></div><div class="card"><h3>🟠 Low Stock (Reorder suggestion)</h3><div class="tw"><table id="l"></table></div></div>
+<div class="card"><h3>⏰ Expiry (within 30 days or expired)</h3><div class="tw"><table id="e"></table></div></div></section>
+<section class="page" id="pg-reports"><div class="top"></div><div class="kpis" id="k"></div><div class="card"><h3>Last 14 Days Sales</h3><div id="ch"></div></div>
+<div class="g2"><div class="card"><h3>Top 5 Selling Products</h3><div id="top"></div></div><div class="card"><h3>Stock Value by Category</h3><div id="cat"></div></div></div>
+<div class="card"><h3>Slow Moving Products</h3><div class="tw"><table id="slow"></table></div></div></section>
+<section class="page" id="pg-contact"><div class="top"></div><div class="g2"><div class="card"><h3>Send us a message</h3><form onsubmit="PG_contact.send(event)"><div class="r2"><div><label>Name *</label><input name="name" required maxlength="80"></div><div><label>Email *</label><input name="email" type="email" required maxlength="120"></div><div><label>Phone</label><input name="phone" maxlength="20"></div><div><label>Subject</label><input name="subject" maxlength="120"></div></div><label>Message *</label><textarea name="message" rows="5" required minlength="5" maxlength="2000"></textarea><div class="acts"><button>Send Message</button></div></form></div>
+<div class="card"><h3>Get in touch</h3><div class="line"><span>📍 Address</span><b>Lahore, Pakistan</b></div><div class="line"><span>📞 Phone</span><b>0300-0000000</b></div><div class="line"><span>✉️ Email</span><b>support@stockly.example</b></div><div class="line"><span>🕘 Hours</span><b>Mon-Sat, 9am - 9pm</b></div></div></div></section>
+</main></div>
+<script>
+// ============================================================
+//  Stockly - Shared core: data (localStorage), helpers, layout
+// ============================================================
+const K = 'stockly_v1', $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (n) => 'Rs ' + Math.round(n).toLocaleString('en-US');
+const day = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+const uid = (p) => p + Math.random().toString(36).slice(2, 8);
+let D; try { D = JSON.parse(localStorage.getItem(K)); } catch (e) {}
+const save = () => { localStorage.setItem(K, JSON.stringify(D)); if (sessionStorage.getItem('u') && window.renderNav) renderNav(); };
+const log = (m) => { D.logs.unshift({ t: new Date().toISOString(), m }); D.logs = D.logs.slice(0, 60); };
+
+function seed() {
+  const S = [['s1', 'Al-Madina Traders', '0300-1112233', 'Lahore', 0], ['s2', 'Fresh Foods Co.', '0321-4445566', 'Karachi', 12500], ['s3', 'City Wholesale', '0333-7778899', 'Faisalabad', 4000]];
+  const P = [ // sku, name, category, unit, cost, price, qty, min, expiry-in-days, supplier
+    ['GR-001', 'Basmati Rice 5kg', 'Grocery', 'bag', 1450, 1650, 40, 10, 300, 's1'],
+    ['GR-002', 'Cooking Oil 1L', 'Grocery', 'bottle', 520, 580, 8, 15, 200, 's2'],
+    ['GR-003', 'Sugar 1kg', 'Grocery', 'kg', 140, 155, 60, 20, 365, 's1'],
+    ['GR-004', 'Tea Pack 475g', 'Grocery', 'pack', 690, 760, 5, 10, 150, 's2'],
+    ['DR-001', 'Mango Juice 1L', 'Drinks', 'bottle', 210, 250, 24, 12, 20, 's2'],
+    ['DR-002', 'Cola 1.5L', 'Drinks', 'bottle', 130, 160, 0, 20, 90, 's3'],
+    ['DA-001', 'Fresh Milk 1L', 'Dairy', 'pack', 200, 230, 18, 20, 4, 's2'],
+    ['DA-002', 'Yogurt 1kg', 'Dairy', 'tub', 240, 280, 12, 8, -2, 's2'],
+    ['SN-001', 'Chips Large', 'Snacks', 'pack', 70, 90, 55, 20, 120, 's3'],
+    ['SN-002', 'Biscuits Family', 'Snacks', 'pack', 95, 120, 30, 15, 180, 's3'],
+    ['HC-001', 'Detergent 1kg', 'Household', 'pack', 380, 430, 22, 10, 500, 's1'],
+    ['HC-002', 'Dishwash Liquid', 'Household', 'bottle', 210, 250, 3, 8, 400, 's1'],
+  ];
+  D = {
+    suppliers: S.map(([id, name, phone, city, balance]) => ({ id, name, phone, city, balance })),
+    products: P.map((p, i) => ({ id: 'p' + (i + 1), sku: p[0], name: p[1], category: p[2], unit: p[3], cost: p[4], price: p[5], qty: p[6], min: p[7], expiry: day(-p[8]), supplierId: p[9] })),
+    purchases: [], sales: [], logs: [],
+  };
+  let n = 0;
+  for (let d = 13; d >= 0; d--) for (let k = 0; k < 2 + (d * 3) % 3; k++) {
+    const items = [...Array(2 + ((d + k) % 2))].map((_, j) => { const p = D.products[(d * 5 + k * 3 + j * 7) % 12]; return { pid: p.id, name: p.name, qty: 1 + ((d + j) % 3), price: p.price, cost: p.cost }; });
+    const sub = items.reduce((s, i) => s + i.qty * i.price, 0), tax = Math.round(sub * 0.05);
+    D.sales.push({ id: 'INV-' + (1001 + n++), date: day(d), customer: 'Walk-in', items, sub, discount: 0, tax, total: sub + tax });
+  }
+  log('Demo data loaded'); save();
+}
+
+const stat = (p) => p.qty <= 0 ? ['Out of stock', 'bad'] : p.qty <= p.min ? ['Low', 'warn'] : ['In stock', 'ok'];
+const dleft = (p) => Math.ceil((new Date(p.expiry) - new Date(day(0))) / 864e5);
+const alerts = () => ({
+  out: D.products.filter((p) => p.qty <= 0),
+  low: D.products.filter((p) => p.qty > 0 && p.qty <= p.min),
+  exp: D.products.filter((p) => p.qty > 0 && dleft(p) <= 30),
+});
+const supName = (id) => (D.suppliers.find((s) => s.id === id) || {}).name || '-';
+const salesByDay = (n) => [...Array(n)].map((_, i) => { const d = day(n - 1 - i); return [d, D.sales.filter((s) => s.date === d && !s.returned).reduce((t, s) => t + s.total, 0), d.slice(5)]; });
+const bars = (a) => { const m = Math.max(1, ...a.map((x) => x[1])); return `<div class="bars">${a.map((x) => `<div title="${esc(x[0])}: ${money(x[1])}"><small>${x[1] ? Math.round(x[1] / 100) / 10 + 'k' : ''}</small><i style="height:${x[1] / m * 115}px"></i>${esc(x[2])}</div>`).join('')}</div>`; };
+const hbars = (a) => { const m = Math.max(1, ...a.map((x) => x[1])); return a.map((x) => `<div class="hb"><span>${esc(x[0])}</span><i style="width:${x[1] / m * 50}%"></i><b>${x[2]}</b></div>`).join(''); };
+
+function modal(h) {
+  if (!$('#modal')) document.body.insertAdjacentHTML('beforeend', '<div id="modal" onclick="if(event.target.id==\'modal\')closeM()"><div class="mbox"></div></div>');
+  $('#modal .mbox').innerHTML = '<button class="x" onclick="closeM()">×</button>' + h; $('#modal').style.display = 'flex';
+}
+const closeM = () => { $('#modal').style.display = 'none'; };
+function toast(m, bad) {
+  if (!$('#toast')) document.body.insertAdjacentHTML('beforeend', '<div id="toast"></div>');
+  const t = $('#toast'); t.textContent = m; t.style.background = bad ? '#c62828' : '#12805c'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2800);
+}
+function resetDemo() { if (confirm('All data will be replaced with demo data. Continue?')) { localStorage.removeItem(K); location.reload(); } }
+function csv(name, rows) {
+  const t = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/csv' })); a.download = name; a.click();
+}
+
+// ---- Product photos ----
+const EMO = { 'GR-001': '🍚', 'GR-002': '🛢️', 'GR-003': '🍬', 'GR-004': '🍵', 'DR-001': '🧃', 'DR-002': '🥤', 'DA-001': '🥛', 'DA-002': '🍶', 'SN-001': '🍟', 'SN-002': '🍪', 'HC-001': '🧴', 'HC-002': '🧼' };
+const CATE = { Grocery: '🛒', Drinks: '🥤', Dairy: '🥛', Snacks: '🍿', Household: '🧽' };
+const ph = (p) => p.photo ? `<img class="ph" src="${p.photo}" alt="">` : `<span class="ph">${EMO[p.sku] || CATE[p.category] || '📦'}</span>`;
+const imgData = (f) => new Promise((ok, no) => {
+  if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return no(new Error('Only JPG, PNG or WEBP photos are allowed'));
+  const r = new FileReader();
+  r.onload = () => { const i = new Image(); i.onload = () => { const s = Math.min(1, 220 / Math.max(i.width, i.height)), c = document.createElement('canvas'); c.width = i.width * s; c.height = i.height * s; c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .8)); }; i.onerror = () => no(new Error('Invalid photo')); i.src = r.result; };
+  r.readAsDataURL(f);
+});
+
+const BUILD = {}, PAGES = ['dashboard', 'products', 'purchase', 'sales', 'suppliers', 'alerts', 'reports', 'contact'];
+// ===================== PAGES =====================
+BUILD.dashboard=function(){const $=s=>document.querySelector('#pg-dashboard '+s);
+
+head('dashboard','Dashboard','<a class="btn" href="#sales">+ New Bill</a>');
+const a=alerts(),live=D.sales.filter(s=>!s.returned),today=live.filter(s=>s.date==day(0)).reduce((t,s)=>t+s.total,0);
+$('#k').innerHTML=[['Total Products',D.products.length,'#0e7c86'],['Stock Value',money(D.products.reduce((s,p)=>s+p.qty*p.cost,0)),'#12805c'],['Sales Today',money(today),'#2563eb'],['Low / Out of Stock',a.low.length+a.out.length,'#d97706'],['Expiry Alerts',a.exp.length,'#c62828'],['Payable to Suppliers',money(D.suppliers.reduce((s,x)=>s+x.balance,0)),'#7c3aed']].map(x=>`<div class="kpi" style="border-color:${x[2]}"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+$('#ch').innerHTML=bars(salesByDay(7));
+const rows=[...a.out.map(p=>[p,'Out of stock','bad']),...a.low.map(p=>[p,p.qty+' left','warn']),...a.exp.map(p=>[p,dleft(p)<0?'Expired':dleft(p)+' days to expiry','bad'])].slice(0,7);
+$('#al').innerHTML=rows.map(r=>`<div class="line"><span>${esc(r[0].name)}</span><span class="badge ${r[2]}">${r[1]}</span></div>`).join('')||'<div class="empty">No alerts 🎉</div>';
+$('#rs').innerHTML='<tr><th>Invoice</th><th>Date</th><th>Total</th></tr>'+[...D.sales].reverse().slice(0,6).map(s=>`<tr><td>${s.id}</td><td>${s.date}</td><td>${money(s.total)}</td></tr>`).join('');
+$('#lg').innerHTML=D.logs.slice(0,8).map(l=>`<div class="line"><span>${esc(l.m)}</span><small>${new Date(l.t).toLocaleDateString('en-GB')}</small></div>`).join('')
+
+return {};};
+
+BUILD.products=function(){const $=s=>document.querySelector('#pg-products '+s);
+
+head('products','Products','<button onclick="PG_products.form()">+ New Product</button><button class="alt" onclick="PG_products.exp()">⬇ CSV</button>');
+$('#c').innerHTML='<option value="">All categories</option>'+[...new Set(D.products.map(p=>p.category))].sort().map(c=>`<option>${esc(c)}</option>`).join('');
+function draw(){const q=$('#q').value.toLowerCase(),c=$('#c').value,s=$('#s').value;
+ const l=D.products.filter(p=>(!q||(p.name+p.sku).toLowerCase().includes(q))&&(!c||p.category==c)&&(!s||(s=='out'?p.qty<=0:p.qty>0&&p.qty<=p.min)));
+ $('#t').innerHTML='<tr><th>SKU</th><th>Product</th><th>Category</th><th>Cost</th><th>Price</th><th>Stock</th><th>Status</th><th>Expiry</th><th></th></tr>'+(l.map(p=>{const[st,cl]=stat(p),d=dleft(p);
+ return `<tr><td>${esc(p.sku)}</td><td><div class="pn">${ph(p)}<b>${esc(p.name)}</b></div></td><td>${esc(p.category)}</td><td>${money(p.cost)}</td><td>${money(p.price)}</td><td>${p.qty} ${esc(p.unit)}</td><td><span class="badge ${cl}">${st}</span></td><td>${d<0?'<span class="badge bad">Expired</span>':d<=30?`<span class="badge warn">${d} days</span>`:p.expiry}</td>
+ <td><button class="sm alt" onclick="PG_products.form('${p.id}')">Edit</button><button class="sm alt" onclick="PG_products.adj('${p.id}')">Loss</button><button class="sm red" onclick="PG_products.del('${p.id}')">✕</button></td></tr>`}).join('')||'<tr><td colspan="9" class="empty">No products found</td></tr>')}
+function form(id){const p=id?D.products.find(x=>x.id==id):{unit:'pack',min:10,qty:0,cost:0,price:0,expiry:day(-180),supplierId:'s1'};
+ modal(`<h2>${id?'Edit Product':'New Product'}</h2><form onsubmit="PG_products.sv(event,'${id||''}')"><div class="r2">
+ <div><label>SKU / Code *</label><input name="sku" value="${esc(p.sku)}" required></div><div><label>Name *</label><input name="name" value="${esc(p.name)}" required></div>
+ <div><label>Category *</label><input name="category" list="cl" value="${esc(p.category)}" required><datalist id="cl">${[...new Set(D.products.map(x=>x.category))].map(c=>`<option>${esc(c)}`).join('')}</datalist></div>
+ <div><label>Unit</label><input name="unit" value="${esc(p.unit)}"></div><div><label>Cost price *</label><input name="cost" type="number" min="0" value="${p.cost}" required></div><div><label>Sale price *</label><input name="price" type="number" min="1" value="${p.price}" required></div>
+ ${id?'':`<div><label>Opening stock</label><input name="qty" type="number" min="0" value="0"></div>`}<div><label>Minimum stock level</label><input name="min" type="number" min="0" value="${p.min}"></div>
+ <div><label>Expiry date</label><input name="expiry" type="date" value="${p.expiry}"></div><div><label>Supplier</label><select name="supplierId">${D.suppliers.map(s=>`<option value="${s.id}" ${s.id==p.supplierId?'selected':''}>${esc(s.name)}</option>`).join('')}</select></div></div>
+ <label>Product photo (optional, resized to max 220px)</label><input name="photo" type="file" accept="image/*"><div class="acts"><button>Save</button><button type="button" class="alt" onclick="closeM()">Cancel</button></div></form>`)}
+async function sv(e,id){e.preventDefault();const fd=new FormData(e.target),pf=fd.get('photo'),f=Object.fromEntries(fd);delete f.photo;if(pf&&pf.size){try{f.photo=await imgData(pf)}catch(x){return toast(x.message,1)}}['cost','price','qty','min'].forEach(k=>f[k]=+f[k]);if(id)delete f.qty;
+ if(D.products.some(p=>p.id!=id&&p.sku.toLowerCase()==f.sku.trim().toLowerCase()))return toast('This SKU already exists (duplicate)',1);
+ if(f.price<f.cost&&!confirm('Sale price is below cost (loss). Save anyway?'))return;
+ if(id){Object.assign(D.products.find(p=>p.id==id),f);log('Product update: '+f.name)}else{D.products.push({id:uid('p'),...f});log('New product: '+f.name)}
+ save();closeM();toast('Saved');draw()}
+function adj(id){const p=D.products.find(x=>x.id==id);modal(`<h2>Loss / Wastage: ${esc(p.name)}</h2><p style="color:#667085">Current stock: ${p.qty} ${esc(p.unit)}</p><form onsubmit="PG_products.ad(event,'${id}')"><label>How much quantity to remove?</label><input name="n" type="number" min="1" max="${p.qty}" required>
+ <label>Reason</label><select name="r"><option>Expired</option><option>Damaged / Broken</option><option>Theft / Missing</option><option>Stock count correction</option></select><div class="acts"><button class="red">Reduce Stock</button></div></form>`)}
+function ad(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target)),p=D.products.find(x=>x.id==id),n=+f.n;if(n>p.qty)return toast('Not enough stock',1);
+ p.qty-=n;log(`Loss: ${p.name} x${n} (${f.r})`);save();closeM();toast('Stock adjusted');draw()}
+function del(id){const p=D.products.find(x=>x.id==id);if(D.sales.some(s=>s.items.some(i=>i.pid==id)))return toast('This product has sales history and cannot be deleted',1);
+ if(confirm(p.name+': delete this item?')){D.products=D.products.filter(x=>x.id!=id);log('Product delete: '+p.name);save();draw()}}
+function exp(){csv('stock.csv',[['SKU','Name','Category','Cost','Price','Qty','Min','Expiry']].concat(D.products.map(p=>[p.sku,p.name,p.category,p.cost,p.price,p.qty,p.min,p.expiry])))}
+draw()
+
+return {draw,form,sv,adj,ad,del,exp};};
+
+BUILD.purchase=function(){const $=s=>document.querySelector('#pg-purchase '+s);
+
+head('purchase','Stock In (Purchase)');
+$('#sup').innerHTML=D.suppliers.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');$('#dt').value=day(0);
+const pre=ROUTE_ARG||'',P=id=>D.products.find(p=>p.id==id);
+let L=[{pid:pre||'',qty:1,cost:pre&&P(pre)?P(pre).cost:0}];if(pre&&P(pre)){L[0].qty=Math.max(1,P(pre).min*2-P(pre).qty);$('#sup').value=P(pre).supplierId}
+function draw(){$('#ls').innerHTML=L.map((l,i)=>`<div class="r2" style="grid-template-columns:2fr 1fr 1fr auto;margin-bottom:8px"><select onchange="PG_purchase.setP(${i},this.value)"><option value="">Select product</option>${D.products.map(p=>`<option value="${p.id}" ${p.id==l.pid?'selected':''}>${esc(p.name)} (stock ${p.qty})</option>`).join('')}</select>
+ <input type="number" min="1" value="${l.qty}" onchange="PG_purchase.setQ(${i},this.value)" placeholder="Qty"><input type="number" min="0" value="${l.cost}" onchange="PG_purchase.setC(${i},this.value)" placeholder="Cost"><button class="sm red" onclick="PG_purchase.rmL(${i})">✕</button></div>`).join('');
+ $('#tt').textContent=money(L.reduce((s,l)=>s+l.qty*l.cost,0))}
+function sv(){const items=L.filter(l=>l.pid);if(!items.length||items.some(l=>l.qty<1||l.cost<0))return toast('Add at least one product with a valid qty/cost',1);
+ const total=items.reduce((s,l)=>s+l.qty*l.cost,0),paid=Math.min(total,+$('#paid').value||0);
+ items.forEach(l=>{const p=P(l.pid);p.qty+=l.qty;p.cost=l.cost});
+ D.suppliers.find(s=>s.id==$('#sup').value).balance+=total-paid;
+ D.purchases.push({id:'PUR-'+(501+D.purchases.length),date:$('#dt').value,supplierId:$('#sup').value,items:items.map(l=>({name:P(l.pid).name,qty:l.qty,cost:l.cost})),total,paid});
+ log(`Stock in: ${items.length} product(s), ${money(total)}`);save();L=[{pid:'',qty:1,cost:0}];$('#paid').value=0;draw();hist();toast('Stock updated')}
+function hist(){$('#h').innerHTML='<tr><th>ID</th><th>Date</th><th>Supplier</th><th>Items</th><th>Total</th><th>Paid</th><th>Balance</th></tr>'+([...D.purchases].reverse().map(p=>`<tr><td>${p.id}</td><td>${p.date}</td><td>${esc(supName(p.supplierId))}</td><td>${p.items.map(i=>esc(i.name)+' x'+i.qty).join(', ')}</td><td>${money(p.total)}</td><td>${money(p.paid)}</td><td>${p.total-p.paid?`<span class="badge warn">${money(p.total-p.paid)}</span>`:'-'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No purchases yet</td></tr>')}
+draw();hist()
+
+function setP(i,v){L[i].pid=v;L[i].cost=v?P(v).cost:0;draw()}
+function setQ(i,v){L[i].qty=+v;draw()}
+function setC(i,v){L[i].cost=+v;draw()}
+function rmL(i){L.splice(i,1);if(!L.length)L.push({pid:'',qty:1,cost:0});draw()}
+function addL(){L.push({pid:'',qty:1,cost:0});draw()}
+
+return {draw,sv,hist,setP,setQ,setC,rmL,addL};};
+
+BUILD.sales=function(){const $=s=>document.querySelector('#pg-sales '+s);
+
+head('sales','Sales / Billing');
+let C=[];const P=id=>D.products.find(p=>p.id==id);
+function grid(){const q=$('#q').value.toLowerCase();$('#grid').innerHTML=D.products.filter(p=>!q||(p.name+p.sku).toLowerCase().includes(q)).map(p=>{const dis=p.qty<=0||dleft(p)<0;
+ return `<div class="pi ${dis?'dis':''}" ${dis?'':`onclick="PG_sales.add('${p.id}')"`}>${ph(p)}<b>${esc(p.name)}</b>${money(p.price)}<br><small>${dis?(p.qty<=0?'Out of stock':'Expired'):p.qty+' '+esc(p.unit)+' available'}</small></div>`}).join('')}
+function add(id){const l=C.find(x=>x.pid==id);if(l){if(l.qty>=P(id).qty)return toast('Not enough stock available',1);l.qty++}else C.push({pid:id,qty:1});cart()}
+function chg(id,d){const l=C.find(x=>x.pid==id),p=P(id);l.qty+=d;if(l.qty>p.qty){l.qty=p.qty;toast('Not enough stock available',1)}if(l.qty<=0)C=C.filter(x=>x!=l);cart()}
+function calc(){const sub=C.reduce((s,l)=>s+l.qty*P(l.pid).price,0),dp=Math.min(100,Math.max(0,+$('#disc').value||0)),disc=Math.round(sub*dp/100),tax=Math.round((sub-disc)*0.05);return{sub,disc,tax,total:sub-disc+tax}}
+function cart(){const t=calc();$('#cart').innerHTML=C.map(l=>{const p=P(l.pid);return `<div class="line"><span>${esc(p.name)}<br><small>${money(p.price)}</small></span><span><button class="sm alt" onclick="PG_sales.chg('${p.id}',-1)">−</button> ${l.qty} <button class="sm alt" onclick="PG_sales.chg('${p.id}',1)">+</button></span><b>${money(l.qty*p.price)}</b></div>`}).join('')||'<div class="empty">Cart is empty. Click a product</div>';
+ $('#tot').innerHTML=`<div><span>Subtotal</span><span>${money(t.sub)}</span></div><div><span>Discount</span><span>- ${money(t.disc)}</span></div><div><span>Tax (5%)</span><span>${money(t.tax)}</span></div><div class="g"><span>Total</span><span>${money(t.total)}</span></div>`}
+function done(){if(!C.length)return toast('Cart is empty',1);const t=calc();
+ const items=C.map(l=>{const p=P(l.pid);p.qty-=l.qty;return{pid:p.id,name:p.name,qty:l.qty,price:p.price,cost:p.cost}});
+ const s={id:'INV-'+(1001+D.sales.length),date:day(0),customer:$('#cust').value.trim()||'Walk-in',items,sub:t.sub,discount:t.disc,tax:t.tax,total:t.total};
+ D.sales.push(s);log(`Sale ${s.id}: ${money(s.total)}`);save();C=[];$('#disc').value=0;$('#cust').value='';cart();grid();hist();inv(s.id)}
+function inv(id){const s=D.sales.find(x=>x.id==id);modal(`<div class="inv"><h2>🏪 Stockly General Store</h2><p>Lahore, Pakistan | 0300-0000000</p><p style="color:#1d2939"><b>${s.id}</b> | ${s.date} | ${esc(s.customer)}</p>
+ <table><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>${s.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.qty}</td><td>${money(i.price)}</td><td>${money(i.qty*i.price)}</td></tr>`).join('')}</table>
+ <div class="tot" style="margin-top:10px"><div><span>Subtotal</span><span>${money(s.sub)}</span></div><div><span>Discount</span><span>- ${money(s.discount)}</span></div><div><span>Tax (5%)</span><span>${money(s.tax)}</span></div><div class="g"><span>Total</span><span>${money(s.total)}</span></div></div>
+ <p style="margin-top:14px">Thank you! Please visit again.</p></div><div class="acts noprint"><button onclick="window.print()">🖨 Print</button><button class="alt" onclick="closeM()">Close</button></div>`)}
+function ret(id){const s=D.sales.find(x=>x.id==id);if(s.returned||!confirm(id+': return this sale? Stock will be added back.'))return;
+ s.items.forEach(i=>{const p=P(i.pid);if(p)p.qty+=i.qty});s.returned=true;log('Sale return: '+id);save();hist();grid();toast('Returned, stock added back')}
+function hist(){$('#h').innerHTML='<tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th></th></tr>'+[...D.sales].reverse().slice(0,15).map(s=>`<tr><td>${s.id}</td><td>${s.date}</td><td>${esc(s.customer)}</td><td>${s.items.length}</td><td>${money(s.total)} ${s.returned?'<span class="badge bad">Returned</span>':''}</td><td><button class="sm alt" onclick="PG_sales.inv('${s.id}')">View</button>${s.returned?'':`<button class="sm red" onclick="PG_sales.ret('${s.id}')">Return</button>`}</td></tr>`).join('')}
+grid();cart();hist()
+
+function clr(){C=[];cart()}
+
+return {grid,add,chg,calc,cart,done,inv,ret,hist,clr};};
+
+BUILD.suppliers=function(){const $=s=>document.querySelector('#pg-suppliers '+s);
+
+head('suppliers','Suppliers','<button onclick="PG_suppliers.form()">+ New Supplier</button>');
+function draw(){$('#t').innerHTML='<tr><th>Name</th><th>Phone</th><th>City</th><th>Products</th><th>We Owe</th><th></th></tr>'+D.suppliers.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone)}</td><td>${esc(s.city)}</td><td>${D.products.filter(p=>p.supplierId==s.id).length}</td>
+ <td>${s.balance?`<span class="badge bad">${money(s.balance)}</span>`:'<span class="badge ok">Clear</span>'}</td><td><button class="sm alt" onclick="PG_suppliers.form('${s.id}')">Edit</button>${s.balance?`<button class="sm" onclick="PG_suppliers.pay('${s.id}')">Payment</button>`:''}<button class="sm red" onclick="PG_suppliers.del('${s.id}')">✕</button></td></tr>`).join('')}
+function form(id){const s=id?D.suppliers.find(x=>x.id==id):{};modal(`<h2>${id?'Edit Supplier':'New Supplier'}</h2><form onsubmit="PG_suppliers.sv(event,'${id||''}')"><label>Name *</label><input name="name" value="${esc(s.name)}" required>
+ <label>Phone *</label><input name="phone" value="${esc(s.phone)}" pattern="[0-9+\- ]{10,15}" title="10-15 digits" required><label>City</label><input name="city" value="${esc(s.city)}"><div class="acts"><button>Save</button></div></form>`)}
+function sv(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));if(id)Object.assign(D.suppliers.find(s=>s.id==id),f);else D.suppliers.push({id:uid('s'),balance:0,...f});log('Supplier save: '+f.name);save();closeM();draw();toast('Saved')}
+function pay(id){const s=D.suppliers.find(x=>x.id==id);modal(`<h2>${esc(s.name)}: Payment</h2><p>Balance: <b>${money(s.balance)}</b></p><form onsubmit="PG_suppliers.pv(event,'${id}')"><label>Payment amount (Rs)</label><input name="a" type="number" min="1" max="${s.balance}" required><div class="acts"><button>Save Payment</button></div></form>`)}
+function pv(e,id){e.preventDefault();const s=D.suppliers.find(x=>x.id==id),a=+new FormData(e.target).get('a');if(a>s.balance)return toast('Amount exceeds balance',1);s.balance-=a;log(`Payment ${money(a)} to ${s.name}`);save();closeM();draw();toast('Payment saved')}
+function del(id){const s=D.suppliers.find(x=>x.id==id);if(s.balance||D.products.some(p=>p.supplierId==id)||D.purchases.some(p=>p.supplierId==id))return toast('This supplier has a balance, products or purchases and cannot be deleted',1);
+ if(confirm(s.name+': delete this item?')){D.suppliers=D.suppliers.filter(x=>x.id!=id);save();draw()}}
+draw()
+
+return {draw,form,sv,pay,pv,del};};
+
+BUILD.alerts=function(){const $=s=>document.querySelector('#pg-alerts '+s);
+
+head('alerts','Alerts & Reorder');const a=alerts();
+const tb=(id,l,fn,h)=>$(id).innerHTML=l.length?`<tr><th>Product</th><th>Stock</th><th>Supplier</th><th>${h}</th><th></th></tr>`+l.map(p=>`<tr><td><div class="pn">${ph(p)}<b>${esc(p.name)}</b></div></td><td>${p.qty} ${esc(p.unit)} (min ${p.min})</td><td>${esc(supName(p.supplierId))}</td><td>${fn(p)}</td><td><a class="btn sm" href="#purchase/${p.id}">Reorder</a></td></tr>`).join(''):'<tr><td class="empty">All good ✅</td></tr>';
+tb('#o',a.out,p=>'Order: '+Math.max(p.min*2,10),'Suggested qty');
+tb('#l',a.low,p=>Math.max(p.min*2-p.qty,p.min)+' '+p.unit,'Suggested qty');
+tb('#e',a.exp,p=>dleft(p)<0?'<span class="badge bad">Expired - write off as loss</span>':`<span class="badge warn">${dleft(p)} days left</span>`,'Expiry')
+
+return {};};
+
+BUILD.reports=function(){const $=s=>document.querySelector('#pg-reports '+s);
+
+head('reports','Reports','<button class="alt" onclick="PG_reports.exs()">⬇ Sales CSV</button><button class="alt" onclick="PG_reports.exst()">⬇ Stock CSV</button>');
+const live=D.sales.filter(s=>!s.returned),net=live.reduce((t,s)=>t+s.sub-s.discount,0),profit=live.reduce((t,s)=>t+s.items.reduce((x,i)=>x+(i.price-i.cost)*i.qty,0)-s.discount,0);
+const cost=D.products.reduce((s,p)=>s+p.qty*p.cost,0),retail=D.products.reduce((s,p)=>s+p.qty*p.price,0);
+$('#k').innerHTML=[['Total Sales (net)',money(net),'#2563eb'],['Profit',money(profit),'#12805c'],['Stock Value (cost)',money(cost),'#0e7c86'],['Stock Value (sale price)',money(retail),'#7c3aed'],['Total Bills',live.length,'#d97706']].map(x=>`<div class="kpi" style="border-color:${x[2]}"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+$('#ch').innerHTML=bars(salesByDay(14));
+const sold={};live.forEach(s=>s.items.forEach(i=>sold[i.name]=(sold[i.name]||0)+i.qty));
+const top=Object.entries(sold).sort((a,b)=>b[1]-a[1]);$('#top').innerHTML=hbars(top.slice(0,5).map(x=>[x[0],x[1],x[1]+' sold']));
+const cat={};D.products.forEach(p=>cat[p.category]=(cat[p.category]||0)+p.qty*p.cost);$('#cat').innerHTML=hbars(Object.entries(cat).map(x=>[x[0],x[1],money(x[1])]));
+$('#slow').innerHTML='<tr><th>Product</th><th>Sold</th><th>Stock</th><th>Money tied up</th></tr>'+D.products.map(p=>[p,sold[p.name]||0]).sort((a,b)=>a[1]-b[1]).slice(0,5).map(x=>`<tr><td>${esc(x[0].name)}</td><td>${x[1]}</td><td>${x[0].qty}</td><td>${money(x[0].qty*x[0].cost)}</td></tr>`).join('');
+function exs(){csv('sales.csv',[['Invoice','Date','Customer','Subtotal','Discount','Tax','Total','Returned']].concat(D.sales.map(s=>[s.id,s.date,s.customer,s.sub,s.discount,s.tax,s.total,s.returned?'Yes':'No'])))}
+function exst(){csv('stock.csv',[['SKU','Name','Category','Cost','Price','Qty','Min','Expiry']].concat(D.products.map(p=>[p.sku,p.name,p.category,p.cost,p.price,p.qty,p.min,p.expiry])))}
+
+return {exs,exst};};
+
+
+BUILD.contact=function(){const $=s=>document.querySelector('#pg-contact '+s);
+head('contact','Contact Us');
+const API=location.protocol=='file:'?'http://localhost:3000':'',H={'Content-Type':'application/json'};
+async function send(e){e.preventDefault();const f=e.target;try{const r=await fetch(API+'/api/contact',{method:'POST',headers:H,body:JSON.stringify(Object.fromEntries(new FormData(f)))});
+ const j=await r.json();if(!r.ok)throw new Error(j.error);f.reset();toast('Message sent. We will get back to you soon.');log('Contact message received')}
+ catch(x){toast(x instanceof SyntaxError||x instanceof TypeError?'Could not reach the server. Start it with: node server.js':x.message,1)}}
+return{send};};
+
+// ===================== APP / ROUTER =====================
+
+let CUR = 'dashboard', ROUTE_ARG = '';
+function head(n, t, a = '') { document.querySelector('#pg-' + n + ' .top').innerHTML = `<h1>${t}</h1><div>${a}</div>`; }
+function renderNav() {
+  const a = alerts(), nb = a.out.length + a.low.length + a.exp.length;
+  const nav = [['dashboard', '📊', 'Dashboard'], ['products', '📦', 'Products'], ['purchase', '🚚', 'Stock In'], ['sales', '🧾', 'Sales / Billing'], ['suppliers', '🏭', 'Suppliers'], ['alerts', '🔔', 'Alerts' + (nb ? `<b class="pill">${nb}</b>` : '')], ['reports', '📈', 'Reports'], ['contact', '✉️', 'Contact Us']];
+  $('#side').innerHTML = `<h2>🏪 Stockly</h2>${nav.map((n) => `<a href="#${n[0]}" class="${n[0] === CUR ? 'on' : ''}">${n[1]} ${n[2]}</a>`).join('')}<div class="side-foot"><a href="#" onclick="resetDemo();return false">↺ Demo Data</a><a href="#" onclick="logout();return false">🚪 Logout</a></div>`;
+}
+function route() {
+  if (!sessionStorage.getItem('u')) { $('#login').style.display = 'grid'; $('#shell').style.display = 'none'; return; }
+  $('#login').style.display = 'none'; $('#shell').style.display = 'grid';
+  const [name, arg] = (location.hash.slice(1) || 'dashboard').split('/');
+  CUR = PAGES.includes(name) ? name : 'dashboard'; ROUTE_ARG = arg || '';
+  PAGES.forEach((p) => $('#pg-' + p).style.display = p === CUR ? 'block' : 'none');
+  renderNav(); window['PG_' + CUR] = BUILD[CUR](); window.scrollTo(0, 0);
+}
+function doLogin() {
+  if ($('#u').value === 'admin' && $('#p').value === 'admin123') { sessionStorage.setItem('u', 'admin'); location.hash = 'dashboard'; route(); }
+  else $('#e').textContent = 'Incorrect username or password';
+}
+function logout() { sessionStorage.clear(); route(); }
+addEventListener('hashchange', route);
+if (!D) seed();
+route();
+</script></body></html>
